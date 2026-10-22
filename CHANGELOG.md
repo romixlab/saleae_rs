@@ -6,6 +6,8 @@ every feature; IDs in parentheses refer to it.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-22
+
 ### Changed
 
 - `just install` works anywhere: it builds with the new `deploy` profile (release, incremental) and installs through `tpm install` when tpm is there (the binary on PATH once, in the kept-releases stack in ~/.local/bin; a stale ~/.cargo/bin copy goes to the trash), else with `cargo install --locked`. `just deploy` checks `--version` against main's commit.
