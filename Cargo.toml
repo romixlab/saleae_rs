@@ -28,3 +28,8 @@ zip = { version = "8", default-features = false, features = ["deflate-flate2-zli
 
 [profile.release]
 # keep default; no workspace-wide overrides needed yet
+
+# `just install`: a release build that rebuilds incrementally, installed through `tpm install`
+[profile.deploy]
+inherits = "release"
+incremental = true

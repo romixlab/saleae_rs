@@ -19,11 +19,15 @@ lint:
     cargo fmt --all --check
     cargo clippy --workspace --all-targets -- -D warnings
 
+# Our PCs: the kept-releases stack, one copy on PATH; anywhere else: plain cargo install
 # Build and install saleae on this PC; completion: source <(COMPLETE=bash saleae)
 install:
-    cargo install --quiet --path crates/saleae_cli --locked
+    cargo build --profile deploy --locked -p saleae_cli
+    if command -v tpm >/dev/null; then tpm install target/deploy/saleae; else cargo install --locked --path crates/saleae_cli; fi
 
-# Bring this PC up to main
+# Bring this PC up to main: pull, install, check --version against main
 deploy:
-    tpm repos pull saleae_rs
+    if command -v tpm >/dev/null; then tpm repos pull saleae_rs; else git pull --ff-only; fi
     just install
+    saleae --version | grep -q "($(git rev-parse --short HEAD)" || { echo "saleae --version does not show $(git rev-parse --short HEAD)"; saleae --version; exit 1; }
+    saleae --version

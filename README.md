@@ -10,7 +10,7 @@ Rust library, a CLI and agent skill on top, and a Python module for notebooks an
 | [`crates/saleae_py`](crates/saleae_py) | the `saleae_rs` Python module (PyO3 + maturin) |
 
 ```sh
-cargo install --path crates/saleae_cli     # or `cargo install saleae_cli` once published
+cargo install --path crates/saleae_cli     # (in a checkout with tpm: `just install`) or `cargo install saleae_cli` once published
 saleae server install                      # Saleae's preview server for this platform (Linux/macOS/Windows)
 saleae devices                             # real devices, plus simulated F4241 / F4244 / F4243
 saleae decode i2c --sda 0 --scl 1 -t 500ms # capture + I2C analyzer + compact summary

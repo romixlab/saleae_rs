@@ -86,7 +86,7 @@ cargo run -p saleae_cli -- server stop
 just lint                               # fmt check + clippy -D warnings on every crate
 just test                               # cargo test --workspace + the Python smoke test
 just test-py                            # builds the Python module into /tmp/saleae_py-venv (uv + maturin), runs pytest
-just install                            # puts `saleae` in ~/.cargo/bin
+just install                            # builds and puts `saleae` on PATH (with tpm: the release stack in ~/.local/bin; without: cargo install)
 ```
 
 Before declaring a change done: `just lint` and `just test`. `tests/sim.rs` and the Python smoke test need
