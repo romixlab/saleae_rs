@@ -9,6 +9,7 @@ use crate::error::{Error, Result};
 use crate::pb::GetAppInfoRequest;
 use crate::pb::manager_client::ManagerClient;
 use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -95,9 +96,9 @@ pub fn locate(explicit: Option<&Path>) -> Result<PathBuf> {
     )))
 }
 
-/// Downloads (with `curl`, so this crate carries no TLS stack) or takes a local zip, and unpacks it into the data
-/// dir, replacing an earlier install. Returns the server binary. `on_progress` is called with one line before the
-/// download starts.
+/// Downloads (with `ureq`) or takes a local zip, and unpacks it into the data dir, replacing an earlier install.
+/// Returns the server binary. `on_progress` is called with one line before the download starts and again every
+/// 10% (curl's `--progress-bar` has no `ureq` equivalent; this is the closest without a second dependency).
 pub fn install(
     url: &str,
     zip_file: Option<&Path>,
@@ -112,21 +113,7 @@ pub fn install(
             if let Some(f) = on_progress {
                 f(&format!("downloading {url}"));
             }
-            let status = Command::new("curl")
-                .args(["-fL", "--progress-bar", "-o"])
-                .arg(&tmp)
-                .arg(url)
-                .status()
-                .map_err(|e| {
-                    Error::server(format!(
-                        "run curl (needed to download; or pass a pre-downloaded zip): {e}"
-                    ))
-                })?;
-            if !status.success() {
-                return Err(Error::server(format!(
-                    "download of {url} failed ({status})"
-                )));
-            }
+            download_to(url, &tmp, on_progress)?;
             tmp
         }
     };
@@ -150,6 +137,39 @@ pub fn install(
         )));
     }
     Ok(bin)
+}
+
+/// Fetches `url` into `dest`, failing on a non-2xx status the way `curl -f` did. `on_progress` gets a line at
+/// every 10% the response's `Content-Length` says is done (skipped when the server sends none).
+fn download_to(url: &str, dest: &Path, on_progress: Option<&dyn Fn(&str)>) -> Result<()> {
+    let resp = ureq::get(url)
+        .call()
+        .map_err(|e| Error::server(format!("download {url}: {e}")))?;
+    let total = resp.body().content_length().unwrap_or(0);
+    let mut reader = resp.into_body().into_reader();
+    let mut out = std::fs::File::create(dest).map_err(|e| crate::error::io_at(e, dest))?;
+    let mut buf = [0u8; 1 << 16];
+    let (mut done, mut shown) = (0u64, 0u64);
+    loop {
+        let n = reader
+            .read(&mut buf)
+            .map_err(|e| Error::server(format!("download {url}: {e}")))?;
+        if n == 0 {
+            break;
+        }
+        out.write_all(&buf[..n])
+            .map_err(|e| crate::error::io_at(e, dest))?;
+        done += n as u64;
+        if let Some(pct) = (done * 100).checked_div(total)
+            && pct >= shown + 10
+        {
+            shown = pct - pct % 10;
+            if let Some(f) = on_progress {
+                f(&format!("downloading {url}: {shown}%"));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Remembered between invocations: which server a client talks to and what it created in it.
@@ -403,16 +423,25 @@ pub fn kill(pid: u64) -> Result<()> {
             )));
         }
     }
-    let status = if cfg!(windows) {
-        Command::new("taskkill")
+    #[cfg(windows)]
+    {
+        let status = Command::new("taskkill")
             .args(["/PID", &pid.to_string()])
             .status()
-    } else {
-        Command::new("kill").arg(pid.to_string()).status()
+            .map_err(|e| Error::server(format!("run taskkill: {e}")))?;
+        if !status.success() {
+            return Err(Error::server(format!("kill {pid} failed")));
+        }
     }
-    .map_err(|e| Error::server(format!("run kill: {e}")))?;
-    if !status.success() {
-        return Err(Error::server(format!("kill {pid} failed")));
+    #[cfg(not(windows))]
+    {
+        let raw = pid
+            .try_into()
+            .map_err(|_| Error::invalid(format!("pid {pid} out of range")))?;
+        let p = rustix::process::Pid::from_raw(raw)
+            .ok_or_else(|| Error::invalid(format!("invalid pid {pid}")))?;
+        rustix::process::kill_process(p, rustix::process::Signal::TERM)
+            .map_err(|e| Error::server(format!("kill {pid}: {e}")))?;
     }
     Ok(())
 }

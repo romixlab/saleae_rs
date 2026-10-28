@@ -15,17 +15,20 @@ categories = ["hardware-support"]
 csv.workspace = true
 dirs.workspace = true
 prost.workspace = true
+rustix.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 tonic.workspace = true
 tonic-prost.workspace = true
+ureq.workspace = true
 zip.workspace = true
 
 [build-dependencies]
 protox = "0.9"
 sha2 = "0.10"
 tonic-prost-build = { version = "0.14", default-features = false, features = ["transport"] }
+ureq.workspace = true
 
 [dev-dependencies]

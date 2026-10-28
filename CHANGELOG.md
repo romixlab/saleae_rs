@@ -6,6 +6,14 @@ every feature; IDs in parentheses refer to it.
 
 ## [Unreleased]
 
+### Changed
+
+- `server install` (SRV-1) downloads with `ureq` instead of the system `curl`; a progress line every 10% of
+  `Content-Length` instead of curl's terminal bar. `server stop` (SRV-3) ends the server with
+  `rustix::process::kill_process` on Linux/macOS instead of shelling out to `kill` (`taskkill` stays on
+  Windows). `build.rs`'s proto fetch (CLI-5) also moved from `curl` to `ureq`, https only, same pinned
+  SHA-256 check (P2620#27oct-1118i).
+
 ## [0.5.2] - 2026-10-22
 
 ### Added

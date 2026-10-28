@@ -25,19 +25,21 @@ This file is the single source of truth for what saleae_cli does, what is broken
 ## Server (`SRV`)
 
 - ✅ **SRV-1 Install**: `saleae server install` downloads Saleae's preview headless server zip for this platform
-  (`--build`, `--url`, or `--zip` for a downloaded file) with `curl` and unpacks it into
+  (`--build`, `--url`, or `--zip` for a downloaded file) with `ureq` and unpacks it into
   `~/.local/share/saleae_cli/server` (`SALEAE_CLI_HOME` overrides the data dir); prints the udev rules hint on
-  Linux (`src/server.rs` `install`).
+  Linux (`src/server.rs` `install`). `ureq` replaced the system `curl` (P2620#27oct-1118i); the download's
+  progress line comes every 10% of `Content-Length` instead of curl's own terminal bar.
 - ✅ **SRV-2 Locate and auto-start**: `--server-bin`/`SALEAE_SERVER_BIN`, then the installed one, then `PATH`. Any
   command that needs the server starts it detached (own process group, log in the data dir) when nothing answers
   on a local `--addr` (default `127.0.0.1:10430`), unless `--no-launch`; `--sim-only` starts it without USB
   scanning (`Conn::session`).
 - ✅ **SRV-3 start / stop / status / path**: `server start [--foreground]`, `server stop` (SIGTERM to the
-  server's `launch_pid` after checking `/proc/PID/comm`, waits until it is gone), `server status`, `server path`.
+  server's `launch_pid` after checking `/proc/PID/comm`, waits until it is gone, `rustix::process::kill_process`
+  on Linux/macOS, `taskkill` on Windows, P2620#27oct-1118i), `server status`, `server path`.
 - 📋 **SRV-4 Verify downloads**: no checksum or signature check of the downloaded zip yet (Saleae publishes none);
   pin a SHA-256 per known build in the CLI.
-- 🔍 **SRV-5 macOS and Windows**: builds and download names are mapped, `server stop` uses `kill`/`taskkill`; not
-  run on either platform.
+- 🔍 **SRV-5 macOS and Windows**: builds and download names are mapped, `server stop` uses `rustix`/`taskkill`;
+  not run on either platform.
 
 ## Capture (`CAP`)
 
@@ -101,7 +103,7 @@ This file is the single source of truth for what saleae_cli does, what is broken
   shown by `saleae status`, used by exports and completion.
 - ✅ **CLI-5 Published crate**: `saleae_cli` on crates.io and github.com/romixlab/saleae_rs (MIT or Apache-2.0).
   The proto is not vendored: `build.rs` downloads Saleae's Apache-2.0 `saleae.proto` from the logic2-automation
-  repo at a pinned commit (v1.0.11) with a pinned SHA-256 (system `curl`); `SALEAE_PROTO_DIR` for offline builds
+  repo at a pinned commit (v1.0.11) with a pinned SHA-256 (`ureq`, https only; P2620#27oct-1118i); `SALEAE_PROTO_DIR` for offline builds
   or a newer proto; `DOCS_RS` builds a stub (no network on docs.rs). `cargo package` verified.
 - 🧪 **CLI-6 Thin CLI over the library**: `crates/saleae_cli` keeps the same commands, flags, JSON output and
   completions, now as a thin layer (clap parsing, text/JSON formatting) over `crates/saleae_rs`

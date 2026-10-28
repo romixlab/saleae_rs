@@ -6,12 +6,11 @@
 //! - `DOCS_RS`: docs.rs builds have no network, so the proto is skipped and the crate is built with
 //!   `cfg(saleae_stub_proto)`: no modules, since none of them can exist without the generated types.
 //!
-//! The download uses the system `curl` (same as `saleae_rs::server::install`): a TLS stack in the build script
-//! would bring in C or assembly code (ring, aws-lc) that the pure-Rust rule of this repo avoids. Integrity comes
-//! from the pinned SHA-256, not from TLS.
+//! The download uses `ureq` (same as `saleae_rs::server::install`), https only; integrity comes from the pinned
+//! SHA-256, not from TLS.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::time::Duration;
 use std::{env, fs};
 
 /// saleae/logic2-automation tag v1.0.11 (API 1.0.0), the latest published proto.
@@ -60,31 +59,27 @@ fn fetch_proto(dest: &Path) {
     let url = format!(
         "https://raw.githubusercontent.com/saleae/logic2-automation/{PROTO_COMMIT}/proto/{PROTO_REL}"
     );
+    assert!(url.starts_with("https://"), "proto url {url} is not https");
     let parent = dest.parent().expect("proto path has a parent");
     fs::create_dir_all(parent).expect("create proto dir in OUT_DIR");
     let tmp = dest.with_extension("proto.part");
-    let status = Command::new("curl")
-        .args([
-            "-sSfL",
-            "--proto",
-            "=https",
-            "--tlsv1.2",
-            "--max-time",
-            "120",
-            "-o",
-        ])
-        .arg(&tmp)
-        .arg(&url)
-        .status();
-    match status {
-        Ok(s) if s.success() => {}
-        Ok(s) => panic!(
-            "download of {url} failed ({s}); offline: set SALEAE_PROTO_DIR to a directory holding {PROTO_REL}"
-        ),
-        Err(e) => panic!(
-            "cannot run curl ({e}); install curl, or set SALEAE_PROTO_DIR to a directory holding {PROTO_REL}"
-        ),
-    }
+    let agent = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(120)))
+        .build()
+        .new_agent();
+    let body = agent
+        .get(&url)
+        .call()
+        .unwrap_or_else(|e| {
+            panic!(
+                "download of {url} failed ({e}); offline: set SALEAE_PROTO_DIR to a directory holding \
+                 {PROTO_REL}"
+            )
+        })
+        .into_body()
+        .read_to_vec()
+        .unwrap_or_else(|e| panic!("read {url}: {e}"));
+    fs::write(&tmp, &body).expect("write downloaded proto");
     let got = sha256_file(&tmp).unwrap_or_default();
     if got != PROTO_SHA256 {
         let _ = fs::remove_file(&tmp);

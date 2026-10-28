@@ -21,7 +21,8 @@ pub enum Error {
     /// Bad input: a setting, channel, trigger or other value that does not make sense.
     #[error("{0}")]
     InvalidInput(String),
-    /// The server (or a subprocess the crate ran, like `curl` or `kill`) did not do what was asked.
+    /// The server (the download, the unpack, or a subprocess the crate still runs, like `taskkill`) did not do
+    /// what was asked.
     #[error("{0}")]
     Server(String),
 }
