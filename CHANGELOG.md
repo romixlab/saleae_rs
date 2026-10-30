@@ -6,6 +6,8 @@ every feature; IDs in parentheses refer to it.
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-10-30
+
 ### Changed
 
 - `server install` (SRV-1) downloads with `ureq` instead of the system `curl`; a progress line every 10% of
