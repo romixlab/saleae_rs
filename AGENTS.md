@@ -134,7 +134,11 @@ repo: nothing private in commits, docs or the skill (no internal hosts, paths, i
 - Paths sent to the server must be absolute (`saleae_rs::export::abs`, used internally): the server runs
   in its own working directory.
 - CLI look and behaviour (help, completion, output, colour, errors and exit codes, progress, prompts, --version):
-  follow the CLI UX guide, `~/git/tpm/area/ops/cli-ux.md`; repo-specific rules here win where they are stricter.
+  follow the CLI UX guide, `~/git/vhrd_cli/docs/ux-guide.md`
+  (https://github.com/vhrdtech/vhrd_cli/blob/main/docs/ux-guide.md); the rules every UI shares are vhrd_egui's
+  guide section 2, "rules for every UI"
+  (https://github.com/vhrdtech/vhrd_egui/blob/main/docs/ux-guide.md#2-rules-for-every-ui). Repo-specific rules
+  here win where they are stricter.
 
 ## Tests
 
