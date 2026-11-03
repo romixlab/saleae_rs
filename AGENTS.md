@@ -133,6 +133,8 @@ repo: nothing private in commits, docs or the skill (no internal hosts, paths, i
 - Every command supports `--json`; keep text output short and line-oriented (agents read it).
 - Paths sent to the server must be absolute (`saleae_rs::export::abs`, used internally): the server runs
   in its own working directory.
+- CLI look and behaviour (help, completion, output, colour, errors and exit codes, progress, prompts, --version):
+  follow the CLI UX guide, `~/git/tpm/area/ops/cli-ux.md`; repo-specific rules here win where they are stricter.
 
 ## Tests
 
