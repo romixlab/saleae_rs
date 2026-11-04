@@ -19,7 +19,7 @@ IDs per area (`LIB`, `SRV`, `CAP`, `ANA`, `EXP`, `DEC`, `CLI`, `PY`, `SKILL`).
 - **Read the relevant area before starting.** A "new" bug or idea is often already recorded.
 - **Name IDs with a short slug when talking to the user**: `CAP-4 mso-capture`, never a bare `CAP-4`. Commit
   messages, CHANGELOG and code `TODO`s keep the bare ID.
-- **Update it in the same commit** as the code. New ids: `tpm work claim AREA` prints the next free one. Never
+- **Update it in the same commit** as the code. New ids: pick the next free number in the area. Never
   renumber or reuse IDs.
 - Don't track status anywhere else. Code `TODO`s that matter reference an ID: `// TODO(CAP-4): ...`.
 
@@ -35,7 +35,7 @@ IDs per area (`LIB`, `SRV`, `CAP`, `ANA`, `EXP`, `DEC`, `CLI`, `PY`, `SKILL`).
 ## Layout
 
 Cargo workspace, edition 2024, one version for all crates (`[workspace.package]`), the same layout as the other
-instrument tools (tpm CLAUDE.md "Code repos": tools are a library first):
+instrument tools (library first):
 
 - `crates/saleae_rs` — the library, the typed API; everything that talks gRPC lives here (not `saleae`:
   that crates.io name is someone else's older, unrelated package, the legacy Logic 1 socket API). Errors are
@@ -107,7 +107,7 @@ checked that way.
 
 ## Dependencies
 
-Pure Rust only (tpm "Code repos" rule): the library has tonic without TLS (the server is local, plain HTTP/2),
+Pure Rust only (house rule for our tools): the library has tonic without TLS (the server is local, plain HTTP/2),
 prost, protox instead of `protoc`, zip with the zlib-rs backend only, sha2 for the proto checksum, thiserror; the
 CLI anyhow, clap and clap_complete; the Python crate pyo3. Downloads (the server zip at run time, the proto at
 build time) use the system `curl` rather than a TLS stack in the binary or build script (rustls needs ring or
@@ -119,7 +119,7 @@ build deps (today: only `dirs-sys` and `linux-raw-sys`, both pure Rust).
 Crates `saleae_rs` (library) and `saleae_cli` (binary `saleae`) on crates.io, repo
 `github.com/romixlab/saleae_rs`. The Python wheel `saleae-rs` (module `saleae_rs`) from
 `crates/saleae_py` (maturin, abi3) is not published yet. `cargo package` must pass
-for both crates (it builds the packaged crate, so the proto download must work); `tpm land` bumps the version,
+for both crates (it builds the packaged crate, so the proto download must work); landing the work bumps the version,
 the user runs `cargo publish` (library first, the CLI's path dependency needs the published version). Public
 repo: nothing private in commits, docs or the skill (no internal hosts, paths, ids).
 
@@ -134,7 +134,7 @@ repo: nothing private in commits, docs or the skill (no internal hosts, paths, i
 - Paths sent to the server must be absolute (`saleae_rs::export::abs`, used internally): the server runs
   in its own working directory.
 - CLI look and behaviour (help, completion, output, colour, errors and exit codes, progress, prompts, --version):
-  follow the CLI UX guide, `~/git/vhrd_cli/docs/ux-guide.md`
+  follow the CLI UX guide
   (https://github.com/vhrdtech/vhrd_cli/blob/main/docs/ux-guide.md); the rules every UI shares are vhrd_egui's
   guide section 2, "rules for every UI"
   (https://github.com/vhrdtech/vhrd_egui/blob/main/docs/ux-guide.md#2-rules-for-every-ui). Repo-specific rules
@@ -156,11 +156,11 @@ Conventional Commits with a scope: `feat(decode): ...`, `fix(server): ...`, scop
 `analyzer`, `export`, `decode`, `cli`, `py`, `skill`, `build`. Short imperative summary, blank line, body with
 what and why; reference feature IDs.
 
-Commit on your own initiative on a session branch (`tpm work new SLUG`), each finished step one commit with
-FEATURES.md and CHANGELOG.md updated in it. When the work is done and the user agrees, `tpm land` puts it on main.
+Commit on your own initiative on a feature branch, each finished step one commit with
+FEATURES.md and CHANGELOG.md updated in it. When the work is done and the user agrees, land it on main.
 
 ## Versions
 
-Landing bumps the version, not each work commit (tpm CLAUDE.md "Landing bumps the version"): session commits add
-CHANGELOG entries under `[Unreleased]` without bumping; `tpm land` makes the `release: x.y.z` commit.
+Landing bumps the version, not each work commit: session commits add
+CHANGELOG entries under `[Unreleased]` without bumping; landing makes the `release: x.y.z` commit.
 `saleae --version` prints version, git SHA and build time (`build.rs`, no extra crates).

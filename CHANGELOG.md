@@ -6,6 +6,10 @@ every feature; IDs in parentheses refer to it.
 
 ## [Unreleased]
 
+### Docs
+
+- docs: internal references removed.
+
 ## [0.5.3] - 2026-10-30
 
 ### Changed
@@ -14,13 +18,13 @@ every feature; IDs in parentheses refer to it.
   `Content-Length` instead of curl's terminal bar. `server stop` (SRV-3) ends the server with
   `rustix::process::kill_process` on Linux/macOS instead of shelling out to `kill` (`taskkill` stays on
   Windows). `build.rs`'s proto fetch (CLI-5) also moved from `curl` to `ureq`, https only, same pinned
-  SHA-256 check (P2620#27oct-1118i).
+  SHA-256 check.
 
 ## [0.5.2] - 2026-10-22
 
 ### Added
 
-- `just test --changed` runs only the workspace crates changed against main and their dependents (`tpm test changed`, nextest's `rdeps()`); plain `just test` runs everything, as `just test-all` does (tpm ops#22oct-2049).
+- `just test --changed` runs only the workspace crates changed against main and their dependents (nextest's `rdeps()`); plain `just test` runs everything, as `just test-all` does.
 
 ## [0.5.1] - 2026-10-22
 

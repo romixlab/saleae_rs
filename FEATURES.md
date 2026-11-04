@@ -7,7 +7,7 @@ This file is the single source of truth for what saleae_cli does, what is broken
 
 - **Status**: ✅ done · 🧪 done, not yet verified on real hardware or real bus traffic · 🚧 partial (the note says
   what is missing) · 🐛 known bug · 📋 planned · 💡 idea · ⛔ blocked (on what) · 🔍 needs a check.
-- **IDs** (`CAP-3`) are stable: never renumber or reuse one. New ids come from `tpm work claim AREA`. Use the ID in
+- **IDs** (`CAP-3`) are stable: never renumber or reuse one. New ids are the next free number in the area. Use the ID in
   commit messages, CHANGELOG entries and code `TODO`s (`// TODO(CAP-4): ...`); name it with a short slug when
   talking to people (`CAP-4 mso-capture`).
 - When finishing work, update the item in the same commit. Obsolete items go to *Dropped and superseded*.
@@ -27,7 +27,7 @@ This file is the single source of truth for what saleae_cli does, what is broken
 - ✅ **SRV-1 Install**: `saleae server install` downloads Saleae's preview headless server zip for this platform
   (`--build`, `--url`, or `--zip` for a downloaded file) with `ureq` and unpacks it into
   `~/.local/share/saleae_cli/server` (`SALEAE_CLI_HOME` overrides the data dir); prints the udev rules hint on
-  Linux (`src/server.rs` `install`). `ureq` replaced the system `curl` (P2620#27oct-1118i); the download's
+  Linux (`src/server.rs` `install`). `ureq` replaced the system `curl`; the download's
   progress line comes every 10% of `Content-Length` instead of curl's own terminal bar.
 - ✅ **SRV-2 Locate and auto-start**: `--server-bin`/`SALEAE_SERVER_BIN`, then the installed one, then `PATH`. Any
   command that needs the server starts it detached (own process group, log in the data dir) when nothing answers
@@ -35,7 +35,7 @@ This file is the single source of truth for what saleae_cli does, what is broken
   scanning (`Conn::session`).
 - ✅ **SRV-3 start / stop / status / path**: `server start [--foreground]`, `server stop` (SIGTERM to the
   server's `launch_pid` after checking `/proc/PID/comm`, waits until it is gone, `rustix::process::kill_process`
-  on Linux/macOS, `taskkill` on Windows, P2620#27oct-1118i), `server status`, `server path`.
+  on Linux/macOS, `taskkill` on Windows), `server status`, `server path`.
 - 📋 **SRV-4 Verify downloads**: no checksum or signature check of the downloaded zip yet (Saleae publishes none);
   pin a SHA-256 per known build in the CLI.
 - 🔍 **SRV-5 macOS and Windows**: builds and download names are mapped, `server stop` uses `rustix`/`taskkill`;
@@ -103,7 +103,7 @@ This file is the single source of truth for what saleae_cli does, what is broken
   shown by `saleae status`, used by exports and completion.
 - ✅ **CLI-5 Published crate**: `saleae_cli` on crates.io and github.com/romixlab/saleae_rs (MIT or Apache-2.0).
   The proto is not vendored: `build.rs` downloads Saleae's Apache-2.0 `saleae.proto` from the logic2-automation
-  repo at a pinned commit (v1.0.11) with a pinned SHA-256 (`ureq`, https only; P2620#27oct-1118i); `SALEAE_PROTO_DIR` for offline builds
+  repo at a pinned commit (v1.0.11) with a pinned SHA-256 (`ureq`, https only); `SALEAE_PROTO_DIR` for offline builds
   or a newer proto; `DOCS_RS` builds a stub (no network on docs.rs). `cargo package` verified.
 - 🧪 **CLI-6 Thin CLI over the library**: `crates/saleae_cli` keeps the same commands, flags, JSON output and
   completions, now as a thin layer (clap parsing, text/JSON formatting) over `crates/saleae_rs`
@@ -125,7 +125,7 @@ This file is the single source of truth for what saleae_cli does, what is broken
 
 - 🧪 **SKILL-1 skills/saleae/SKILL.md**: what to ask the user (channels, ground, voltage, speed, timing), decode
   recipes, reading the summaries, reporting. Not yet used on a real debugging session.
-- 📋 **SKILL-2 Skill tree**: usage signals and skilltree entries for the `saleae` commands (P2618 task).
+- 📋 **SKILL-2 Skill tree**: usage signals and skilltree entries for the `saleae` commands.
 
 ## Dropped and superseded
 

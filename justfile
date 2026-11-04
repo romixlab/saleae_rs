@@ -5,11 +5,11 @@ py_venv := "/tmp/saleae_py-venv"
 default:
     @just --list
 
-# The tests. `just test`: all of them (test-all), the run of the `tpm land` gate. `just test --changed`: only the
-# workspace crates changed against main and the crates that depend on them (tpm test changed), what a session runs
-# before tpm work ready.
+# The tests. `just test`: all of them (test-all), what CI runs before a change lands. `just test --changed`: only
+# the workspace crates changed against main and the crates that depend on them, using a helper tool when it's on
+# PATH, otherwise falling back to running everything.
 test *flags:
-    if [ "{{flags}}" = "--changed" ]; then tpm test changed -- cargo nextest run --workspace; else {{just_executable()}} test-all {{flags}}; fi
+    if [ "{{flags}}" = "--changed" ]; then if command -v tpm >/dev/null; then tpm test changed -- cargo nextest run --workspace; else cargo nextest run --workspace; fi; else {{just_executable()}} test-all {{flags}}; fi
 
 # Tests, Rust and Python (tests/sim.rs and the Python smoke test skip without `saleae server install`)
 test-all: test-py
