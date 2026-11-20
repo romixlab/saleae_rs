@@ -9,7 +9,7 @@ default:
 # the workspace crates changed against main and the crates that depend on them, using a helper tool when it's on
 # PATH, otherwise falling back to running everything.
 test *flags:
-    if [ "{{flags}}" = "--changed" ]; then if command -v changedtests >/dev/null; then f=$(changedtests) && if [ -n "$f" ]; then cargo nextest run --workspace -E "$f"; fi; else echo "changedtests not found; running the full test suite instead" >&2; {{just_executable()}} test-all; fi; else {{just_executable()}} test-all {{flags}}; fi
+    {{ if flags == "--changed" { "changedtests run" } else { just_executable() + " test-all " + flags } }}
 
 # Tests, Rust and Python (tests/sim.rs and the Python smoke test skip without `saleae server install`)
 test-all: test-py
