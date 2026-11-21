@@ -35,3 +35,6 @@ zip = { version = "8", default-features = false, features = ["deflate-flate2-zli
 [profile.deploy]
 inherits = "release"
 incremental = true
+
+[profile.dev]
+debug = false
